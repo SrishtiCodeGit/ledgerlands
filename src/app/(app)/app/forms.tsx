@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { ASSET_CLASSES, type HoldingInput } from "@/lib/holdings";
 import { CURRENCIES, PLAN_KINDS, type PlanInput } from "@/lib/plans";
 import type { FormState } from "./actions";
 
@@ -69,6 +70,47 @@ export function InviteForm({ action }: { action: Action }) {
       </div>
       <Status state={state} />
       <button className="btn-quiet" disabled={pending}>{pending ? "Inviting…" : "Invite"}</button>
+    </form>
+  );
+}
+
+export function HoldingForm({ action, holding, currency, submit }: { action: Action; holding?: HoldingInput; currency: string; submit: string }) {
+  const [state, run, pending] = useActionState(action, null);
+  return (
+    <form action={run} className="form">
+      <div className="row">
+        <label className="grow">
+          <span>Name</span>
+          <input name="name" required maxLength={60} defaultValue={holding?.name} placeholder="Apple, S&P 500 fund, gold coins…" />
+        </label>
+        <label>
+          <span>Ticker <i>optional</i></span>
+          <input name="symbol" maxLength={12} defaultValue={holding?.symbol ?? ""} placeholder="AAPL" autoCapitalize="characters" />
+        </label>
+      </div>
+      <label>
+        <span>Kind</span>
+        <select name="assetClass" defaultValue={holding?.assetClass ?? "Stocks"}>
+          {ASSET_CLASSES.map((c) => <option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <div className="row">
+        <label>
+          <span>Quantity</span>
+          <input name="quantity" required inputMode="decimal" defaultValue={holding?.quantity} placeholder="10" />
+        </label>
+        <label>
+          <span>Paid per unit ({currency})</span>
+          <input name="unitCost" required inputMode="decimal" defaultValue={holding?.unitCost} placeholder="150" />
+        </label>
+        <label>
+          <span>Price now <i>optional</i></span>
+          <input name="unitPrice" inputMode="decimal" defaultValue={holding?.unitPrice} placeholder="Same as paid" />
+        </label>
+      </div>
+      <p className="hint">Holding cash or a fund as an amount? Put 1 as the quantity and the amount as the price. Live prices arrive soon; for now you set the price.</p>
+      <Status state={state} />
+      <button className="btn-primary" disabled={pending}>{pending ? "Saving…" : submit}</button>
     </form>
   );
 }

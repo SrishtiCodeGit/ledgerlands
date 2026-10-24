@@ -1,10 +1,17 @@
 (function () {
   "use strict";
-  var host = document.getElementById("world");
-  if (!host) return;
+  // Draws a kingdom into a host element and returns { destroy }, or null when 3D isn't available.
+  // The landing page mounts the example kingdom with a camera tied to scroll. A plan page passes
+  // opts.holdings ([{ id, style, cost, value }]) and gets its own kingdom with a camera you drag around;
+  // opts.onHover(id | null, clientX, clientY) reports the building under the pointer.
+  function mount(host, opts) {
+  opts = opts || {};
+  var planMode = Array.isArray(opts.holdings);
   var reduceMotion = false;
   try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
-  if (typeof THREE === "undefined") { document.body.classList.add("no3d"); return; }
+  if (typeof THREE === "undefined") return null;
+  var cleanups = [];
+  function on(target, type, fn, o) { target.addEventListener(type, fn, o); cleanups.push(function () { target.removeEventListener(type, fn, o); }); }
   try {
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -15,6 +22,7 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setClearColor(0x03080f);
     host.appendChild(renderer.domElement);
+    if (planMode) { var cs = renderer.domElement.style; cs.display = "block"; cs.width = "100%"; cs.height = "100%"; cs.touchAction = "pan-y"; cs.cursor = "grab"; }
 
     var scene = new THREE.Scene();
     // Deep water: navy near the island, sinking to near-black toward the horizon.
@@ -491,8 +499,8 @@
       });
     }
 
-    // ----- example kingdom: six holdings in five districts -----
-    var HOLD = [
+    // ----- the holdings: the plan's own, or the example kingdom (six holdings in five districts) -----
+    var HOLD = planMode ? opts.holdings.slice(0, 48).map(function (h) { return { id: h.id, fam: h.style, style: h.style, inv: h.cost, cur: h.value }; }) : [
       { fam: "Stocks", style: "tower", inv: 2400, cur: 2830 },
       { fam: "Stocks", style: "tower", inv: 1800, cur: 2600 },
       { fam: "Funds", style: "hall", inv: 4000, cur: 4420 },
@@ -502,7 +510,8 @@
     ];
     var GROUND_FOR = { tower: "pave", hall: "market", mine: "gravel", wizard: "cobble", vault: "pave" };
     var FLAG_UP = 0x2fa860, FLAG_DOWN = 0xd9443a;
-    var maxV = Math.max.apply(null, HOLD.map(function (h) { return h.cur; }));
+    var maxV = Math.max.apply(null, [1e-9].concat(HOLD.map(function (h) { return h.cur; })));
+    var pickables = [];
     var fams = [];
     HOLD.forEach(function (h) {
       var f = fams.filter(function (x) { return x.name === h.fam; })[0];
@@ -545,6 +554,8 @@
         anims.push({ type: "flag", mesh: fl, phase: i * 2 + j });
         if (g.userData.spin) anims.push({ type: "spin", mesh: g.userData.spin });
         g.userData.finalScale = scale;
+        g.userData.holdingId = h.id;
+        pickables.push(g);
         g.scale.setScalar(scale);
         g.position.set(spot.x - (spot.w - 0.8) / 2 + cw * (c + 0.5), 0, spot.z - (spot.d - 0.8) / 2 + cd * (r + 0.5));
         scene.add(g);
@@ -629,8 +640,9 @@
       renderer.toneMappingExposure = L.exposure + (D.exposure - L.exposure) * k;
     }
     applyTheme(themeK);
-    new MutationObserver(function () { themeGoal = document.documentElement.getAttribute("data-theme") === "dark" ? 1 : 0; kick(); })
-      .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    var themeWatch = new MutationObserver(function () { themeGoal = document.documentElement.getAttribute("data-theme") === "dark" ? 1 : 0; kick(); });
+    themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    cleanups.push(function () { themeWatch.disconnect(); });
 
     // ----- the camera flies a path tied to scroll: wide, side, close, behind, overview -----
     var KEYS = [
@@ -652,10 +664,48 @@
       var max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
       return window.scrollY / max;
     }
-    pathAt(scrollProgress()); camPos.copy(wantPos); camTgt.copy(wantTgt);
+    // On a plan page the camera circles the island instead: drag sideways to turn it, up and down to tilt.
+    // It drifts slowly on its own until someone drags.
+    var orbit = { theta: 0.75, phi: 0.5, dist: 40, auto: true };
+    function orbitAt() {
+      var r = orbit.dist * (camera.aspect < 1 ? 1.35 : 1);
+      wantPos.set(Math.sin(orbit.theta) * Math.cos(orbit.phi) * r, 1 + Math.sin(orbit.phi) * r, Math.cos(orbit.theta) * Math.cos(orbit.phi) * r);
+      wantTgt.set(0, 1.6, 0);
+    }
+    function aim() { if (planMode) orbitAt(); else pathAt(scrollProgress()); }
     var mouseX = 0, mouseY = 0;
-    window.addEventListener("pointermove", function (e) { mouseX = e.clientX / window.innerWidth - 0.5; mouseY = e.clientY / window.innerHeight - 0.5; }, { passive: true });
-    window.addEventListener("scroll", function () { kick(); }, { passive: true });
+    if (planMode) {
+      var cvs = renderer.domElement, drag = null, ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), hoverId = null;
+      var pick = function (e) {
+        var r = cvs.getBoundingClientRect();
+        ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+        ray.setFromCamera(ndc, camera);
+        var hit = ray.intersectObjects(pickables, true)[0], o = hit && hit.object;
+        while (o && !o.userData.holdingId) o = o.parent;
+        var id = o ? o.userData.holdingId : null;
+        if (id !== hoverId || id) { hoverId = id; if (opts.onHover) opts.onHover(id, e.clientX, e.clientY); }
+        cvs.style.cursor = drag ? "grabbing" : id ? "pointer" : "grab";
+      };
+      on(cvs, "pointerdown", function (e) { drag = { x: e.clientX, y: e.clientY, moved: false }; orbit.auto = false; try { cvs.setPointerCapture(e.pointerId); } catch (err) {} });
+      on(cvs, "pointermove", function (e) {
+        if (drag) {
+          var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+          if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+          orbit.theta -= dx * 0.008;
+          if (e.pointerType === "mouse") orbit.phi = Math.max(0.22, Math.min(1.25, orbit.phi + dy * 0.005));
+          drag.x = e.clientX; drag.y = e.clientY;
+          kick();
+        }
+        pick(e);
+      });
+      var endDrag = function (e) { if (drag && !drag.moved) pick(e); drag = null; };
+      on(cvs, "pointerup", endDrag);
+      on(cvs, "pointercancel", function () { drag = null; });
+      on(cvs, "pointerleave", function () { if (!drag && hoverId) { hoverId = null; if (opts.onHover) opts.onHover(null, 0, 0); } });
+    } else {
+      on(window, "pointermove", function (e) { mouseX = e.clientX / window.innerWidth - 0.5; mouseY = e.clientY / window.innerHeight - 0.5; }, { passive: true });
+      on(window, "scroll", function () { kick(); }, { passive: true });
+    }
 
     // ----- size, visibility and frame loop -----
     function resize() {
@@ -666,22 +716,31 @@
       camera.updateProjectionMatrix();
     }
     resize();
-    window.addEventListener("resize", resize);
+    aim(); camPos.copy(wantPos); camTgt.copy(wantTgt);
+    on(window, "resize", resize);
+    if (planMode && typeof ResizeObserver !== "undefined") {
+      var sizeWatch = new ResizeObserver(function () { resize(); kick(); });
+      sizeWatch.observe(host);
+      cleanups.push(function () { sizeWatch.disconnect(); });
+    }
 
     var running = true;
-    document.addEventListener("visibilitychange", function () { running = !document.hidden; if (running) kick(); });
-    var clock = new THREE.Clock(), looping = false, startAt = performance.now();
-    function kick() { if (!looping) { looping = true; requestAnimationFrame(frame); } }
+    on(document, "visibilitychange", function () { running = !document.hidden; if (running) kick(); });
+    var clock = new THREE.Clock(), looping = false, startAt = performance.now(), rafId = 0, destroyed = false;
+    function kick() { if (!looping && !destroyed) { looping = true; rafId = requestAnimationFrame(frame); } }
     function frame() {
-      if (!running) { looping = false; return; }
-      requestAnimationFrame(frame);
+      if (!running || destroyed) { looping = false; return; }
+      rafId = requestAnimationFrame(frame);
       var t = reduceMotion ? 0 : clock.getElapsedTime() * 0.5;
       var since = (performance.now() - startAt) / 1000;
 
-      pathAt(scrollProgress());
-      var drift = reduceMotion ? 0 : Math.sin(t * 0.15) * 1.2;
-      wantPos.x += mouseX * 3 + drift; wantPos.y += -mouseY * 1.6;
-      var ease2 = reduceMotion ? 1 : 0.05;
+      if (planMode && orbit.auto && !reduceMotion) orbit.theta += 0.0011;
+      aim();
+      if (!planMode) {
+        var drift = reduceMotion ? 0 : Math.sin(t * 0.15) * 1.2;
+        wantPos.x += mouseX * 3 + drift; wantPos.y += -mouseY * 1.6;
+      }
+      var ease2 = reduceMotion ? 1 : planMode ? 0.14 : 0.05;
       camPos.lerp(wantPos, ease2); camTgt.lerp(wantTgt, ease2);
       camera.position.copy(camPos); camera.lookAt(camTgt);
 
@@ -718,7 +777,26 @@
     }
     kick();
 
+    return {
+      destroy: function () {
+        destroyed = true;
+        cancelAnimationFrame(rafId);
+        cleanups.forEach(function (f) { f(); });
+        scene.traverse(function (o) {
+          if (o.geometry) o.geometry.dispose();
+          var ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+          ms.forEach(function (m) { if (m.map) m.map.dispose(); m.dispose(); });
+        });
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+        if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
+      }
+    };
   } catch (err) {
-    document.body.classList.add("no3d");
+    cleanups.forEach(function (f) { f(); });
+    return null;
   }
+  }
+
+  window.LLWorld = { mount: mount };
 })();

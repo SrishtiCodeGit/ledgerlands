@@ -78,3 +78,71 @@ a.plan-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb
 .members .who { flex: 1 1 200px; font-weight: 600; overflow-wrap: anywhere; }
 .members .role { font-size: 14px; color: var(--muted); }
 .hint { font-size: 15px; }
+
+/* Kingdom (Phase 2): the plan's 3D island with its numbers floating over the sky */
+.realm { position: relative; height: clamp(380px, 62vh, 620px); border-radius: 28px; overflow: hidden; border: 1px solid var(--glass-line);
+  background: linear-gradient(180deg, #7fc3d6, #bfe6dc 55%, #6fb9a8); box-shadow: 0 30px 80px rgba(4, 20, 15, 0.18); }
+:root[data-theme="dark"] .realm { background: linear-gradient(180deg, #020907, #062219 55%, #0b3a33); }
+.realm.skeleton { opacity: .5; }
+.realm-canvas { position: absolute; inset: 0; }
+.realm-over { position: absolute; left: 0; top: 0; padding: clamp(18px, 3vw, 32px); max-width: min(460px, 100%); display: flex; flex-direction: column; gap: 6px;
+  pointer-events: none; text-shadow: 0 1px 12px color-mix(in srgb, var(--bot-bg) 70%, transparent); }
+.realm-over h1 { font-size: clamp(28px, 4.4vw, 44px); }
+.realm-over p { margin: 0; font-weight: 600; }
+.realm-over .worth { font-size: clamp(30px, 4.6vw, 46px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+.realm-over .quiet { color: var(--muted); }
+.realm .kind { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); opacity: .75; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.goal { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+.goal-bar { width: min(320px, 70vw); height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--bot-bg) 60%, transparent); border: 1px solid var(--glass-line); overflow: hidden; }
+.goal-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--mint), var(--gold)); }
+.realm-hint { position: absolute; right: 16px; bottom: 14px; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; pointer-events: none;
+  background: color-mix(in srgb, var(--bot-bg) 75%, transparent); border: 1px solid var(--glass-line); color: var(--muted); }
+.realm-tip { position: absolute; transform: translate(-50%, calc(-100% - 14px)); pointer-events: none; display: flex; flex-direction: column; gap: 2px; white-space: nowrap;
+  padding: 8px 12px; border-radius: 14px; background: var(--bot-bg); border: 1px solid var(--glass-line); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2); font-size: 14px; }
+.realm-tip span { font-weight: 600; }
+.realm.flat .realm-canvas { display: none; }
+
+.first-run { border-color: color-mix(in srgb, var(--gold) 55%, transparent); box-shadow: 0 16px 50px color-mix(in srgb, var(--gold) 14%, transparent); }
+.panel.wide { max-width: none; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.panel .meta, .settings .meta { font-size: 14px; color: var(--faint); font-weight: 500; }
+.worth-sm { color: var(--ink) !important; font-weight: 700; font-size: 18px !important; }
+
+.mix { display: flex; gap: 3px; height: 12px; border-radius: 999px; overflow: hidden; }
+.mix i { display: block; min-width: 4px; }
+.mix-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; }
+.mix-key span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.mix-key i { width: 10px; height: 10px; border-radius: 3px; }
+.mix-tower { background: #3f7f9f; } .mix-hall { background: #d98a4a; } .mix-wizard { background: #8a6fd1; } .mix-mine { background: var(--gold); } .mix-vault { background: #7d8790; }
+
+.holdings { list-style: none; margin: 0; padding: 0; }
+.holdings li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 14px 0; border-bottom: 1px solid var(--glass-line); }
+.holdings li:last-child { border-bottom: none; }
+.h-main { flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.h-main span { font-size: 14px; color: var(--muted); }
+.h-main .sym { font-size: 13px; color: var(--faint); font-weight: 600; }
+.h-num { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.h-num span { font-size: 14px; font-weight: 600; }
+.h-edit { flex-basis: 100%; }
+.h-edit > summary, .add-more > summary { cursor: pointer; list-style: none; }
+.h-edit > summary::-webkit-details-marker, .add-more > summary::-webkit-details-marker, .settings > summary::-webkit-details-marker { display: none; }
+.h-edit > summary { display: inline-block; font-size: 14px; font-weight: 600; color: var(--muted); }
+.h-edit[open] > summary { margin-bottom: 12px; }
+.h-edit .form { margin-bottom: 8px; }
+.add-more > summary { display: inline-flex; align-items: center; }
+.add-more[open] > summary { margin-bottom: 16px; }
+
+.settings { max-width: none; }
+.settings > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.settings > summary h2 { display: inline; }
+.settings > summary::after { content: "Show"; font-size: 14px; font-weight: 600; color: var(--muted); }
+.settings[open] > summary::after { content: "Hide"; }
+.settings .sub { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 1px solid var(--glass-line); }
+.settings h3 { margin: 0; font-size: 17px; }
+.settings .sub.danger h3 { color: var(--down); }
+@media (max-width: 560px) {
+  .realm { border-radius: 22px; }
+  .h-num { align-items: flex-start; }
+}

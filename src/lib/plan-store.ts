@@ -1,9 +1,10 @@
 // Database reads and writes for plans and their members. Every query takes the caller's user id
 // and checks their role in SQL, so a missing check in a page can't leak or change someone else's plan.
 import { sql } from "./db.ts";
+import type { Holding, HoldingInput } from "./holdings.ts";
 import { isPlanId, type Invite, type PlanInput, type Role } from "./plans.ts";
 
-export type Plan = PlanInput & { id: string; role: Role; members: number; createdAt: string };
+export type Plan = PlanInput & { id: string; role: Role; members: number; holdings: number; value: number; createdAt: string };
 export type Member = { id: string; email: string; role: Role; joined: boolean };
 
 type Row = Record<string, unknown>;
@@ -18,12 +19,16 @@ function toPlan(r: Row): Plan {
     goalDate: (r.goal_date as string | null) ?? null,
     role: r.role as Role,
     members: Number(r.members),
+    holdings: Number(r.holdings),
+    value: Number(r.value),
     createdAt: r.created_at as string,
   };
 }
 
 const PLAN_COLUMNS = `p.id, p.name, p.kind, p.currency, p.goal_amount::float8 as goal_amount, p.goal_date::text as goal_date,
-  p.created_at::text as created_at, m.role, (select count(*) from plan_members c where c.plan_id = p.id) as members`;
+  p.created_at::text as created_at, m.role, (select count(*) from plan_members c where c.plan_id = p.id) as members,
+  (select count(*) from holdings h where h.plan_id = p.id) as holdings,
+  (select coalesce(sum(h.quantity * h.unit_price), 0)::float8 from holdings h where h.plan_id = p.id) as value`;
 
 // Turns pending invites sent to any of this person's verified emails into memberships.
 export async function claimInvites(userId: string, verifiedEmails: string[]): Promise<void> {
@@ -116,5 +121,55 @@ export async function removeMember(userId: string, planId: string, memberId: str
 export async function leavePlan(userId: string, planId: string): Promise<boolean> {
   if (!isPlanId(planId)) return false;
   const rows = await sql()`delete from plan_members where plan_id = ${planId} and user_id = ${userId} and role <> 'owner' returning id`;
+  return rows.length > 0;
+}
+
+// ----- holdings -----
+
+const CAN_EDIT = `exists (select 1 from plan_members m where m.plan_id = $1 and m.user_id = $2 and m.role in ('owner', 'editor'))`;
+
+export async function listHoldings(userId: string, planId: string): Promise<Holding[]> {
+  if (!isPlanId(planId)) return [];
+  const rows = (await sql()`
+    select h.id, h.name, h.symbol, h.asset_class, h.quantity::float8 as quantity,
+      h.unit_cost::float8 as unit_cost, h.unit_price::float8 as unit_price
+    from holdings h
+    where h.plan_id = ${planId} and exists (select 1 from plan_members m where m.plan_id = ${planId} and m.user_id = ${userId})
+    order by h.quantity * h.unit_price desc, h.created_at`) as Row[];
+  return rows.map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    symbol: (r.symbol as string | null) ?? null,
+    assetClass: r.asset_class as Holding["assetClass"],
+    quantity: Number(r.quantity),
+    unitCost: Number(r.unit_cost),
+    unitPrice: Number(r.unit_price),
+  }));
+}
+
+// Owners and editors add, change and remove holdings.
+export async function addHolding(userId: string, planId: string, h: HoldingInput): Promise<boolean> {
+  if (!isPlanId(planId)) return false;
+  const rows = await sql().query(
+    `insert into holdings (plan_id, name, symbol, asset_class, quantity, unit_cost, unit_price, created_by)
+     select $1, $3, $4, $5, $6, $7, $8, $2 where ${CAN_EDIT} returning id`,
+    [planId, userId, h.name, h.symbol, h.assetClass, h.quantity, h.unitCost, h.unitPrice],
+  );
+  return rows.length > 0;
+}
+
+export async function updateHolding(userId: string, planId: string, holdingId: string, h: HoldingInput): Promise<boolean> {
+  if (!isPlanId(planId) || !isPlanId(holdingId)) return false;
+  const rows = await sql().query(
+    `update holdings set name = $4, symbol = $5, asset_class = $6, quantity = $7, unit_cost = $8, unit_price = $9, updated_at = now()
+     where id = $3 and plan_id = $1 and ${CAN_EDIT} returning id`,
+    [planId, userId, holdingId, h.name, h.symbol, h.assetClass, h.quantity, h.unitCost, h.unitPrice],
+  );
+  return rows.length > 0;
+}
+
+export async function removeHolding(userId: string, planId: string, holdingId: string): Promise<boolean> {
+  if (!isPlanId(planId) || !isPlanId(holdingId)) return false;
+  const rows = await sql().query(`delete from holdings where id = $3 and plan_id = $1 and ${CAN_EDIT} returning id`, [planId, userId, holdingId]);
   return rows.length > 0;
 }

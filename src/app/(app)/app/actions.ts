@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { checkHolding } from "@/lib/holdings";
 import { checkInvite, checkPlan } from "@/lib/plans";
 import * as store from "@/lib/plan-store";
 import { requireMe, requireUserId } from "@/lib/session";
@@ -55,4 +56,28 @@ export async function deletePlan(planId: string): Promise<void> {
   await store.deletePlan(userId, planId);
   revalidatePath("/app");
   redirect("/app");
+}
+
+export async function addHolding(planId: string, _: FormState, fd: FormData): Promise<FormState> {
+  const userId = await requireUserId();
+  const r = checkHolding(fields(fd));
+  if (r.kind === "invalid") return { error: r.error };
+  if (!(await store.addHolding(userId, planId, r.value))) return { error: "You can't add to this kingdom." };
+  revalidatePath(`/app/plans/${planId}`);
+  return { done: `${r.value.name} is rising in your kingdom.` };
+}
+
+export async function updateHolding(planId: string, holdingId: string, _: FormState, fd: FormData): Promise<FormState> {
+  const userId = await requireUserId();
+  const r = checkHolding(fields(fd));
+  if (r.kind === "invalid") return { error: r.error };
+  if (!(await store.updateHolding(userId, planId, holdingId, r.value))) return { error: "You can't change this holding." };
+  revalidatePath(`/app/plans/${planId}`);
+  return { done: "Saved." };
+}
+
+export async function removeHolding(planId: string, holdingId: string): Promise<void> {
+  const userId = await requireUserId();
+  await store.removeHolding(userId, planId, holdingId);
+  revalidatePath(`/app/plans/${planId}`);
 }

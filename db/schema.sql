@@ -31,3 +31,22 @@ create table if not exists plan_members (
 create unique index if not exists plan_members_plan_user on plan_members (plan_id, user_id) where user_id is not null;
 create index if not exists plan_members_user on plan_members (user_id);
 create index if not exists plan_members_pending_email on plan_members (email) where user_id is null;
+
+-- What a plan holds. Each holding becomes a building in that plan's kingdom.
+-- unit_price is what the person entered for now; live prices replace it in Phase 3 (price_source).
+create table if not exists holdings (
+  id uuid primary key default gen_random_uuid(),
+  plan_id uuid not null references plans(id) on delete cascade,
+  name text not null check (char_length(name) between 1 and 60),
+  symbol text check (symbol is null or char_length(symbol) between 1 and 12),
+  asset_class text not null,
+  quantity numeric(24, 8) not null check (quantity > 0),
+  unit_cost numeric(18, 4) not null check (unit_cost >= 0),
+  unit_price numeric(18, 4) not null check (unit_price >= 0),
+  price_source text not null default 'manual',
+  created_by text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists holdings_plan on holdings (plan_id);

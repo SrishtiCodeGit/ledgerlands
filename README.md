@@ -32,8 +32,8 @@ CI runs both on every push (`.github/workflows/ci.yml`). Pushes to `main` deploy
 | `src/app/api/early-access` | Saves early-access signups as private files in Vercel Blob |
 | `src/lib` | Plan rules and signup validation (with tests), database queries, session helpers, theme |
 | `src/proxy.ts` | Clerk session on each request; pages and Server Functions check sign-in themselves |
-| `db/schema.sql` | Database tables (plans, plan members) |
-| `public/legacy` | The 3D world and bot as plain scripts; they become React components in Phase 2 |
+| `db/schema.sql` | Database tables (plans, plan members, holdings) |
+| `public/legacy` | The 3D world (`world.js`, mounted by the landing page and by each plan page with its own holdings) and the Steward bot, as plain scripts |
 
 ## Environment
 
@@ -43,7 +43,7 @@ All keys come from the Vercel project. Pull them with `vercel env pull .env.loca
 | --- | --- |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob store (early-access signups) |
 | `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk (accounts) |
-| `DATABASE_URL` | Neon Postgres (plans) |
+| `DATABASE_URL` | Neon Postgres (plans, members, holdings) |
 
 After changing `db/schema.sql`, apply it with `npm run db:migrate`. The schema is safe to run more than once.
 
