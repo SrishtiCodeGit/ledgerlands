@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Plain browser scripts carried over from the static site; replaced by React components in Phase 2.
+    "public/legacy/**",
   ]),
 ]);
 
