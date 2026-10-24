@@ -28,3 +28,9 @@ body.no3d { background: linear-gradient(180deg, #7fc3d6, #bfe6dc 55%, #5a7d41); 
 :root[data-theme="dark"] body.no3d { background: linear-gradient(180deg, #020907, #062219 55%, #0c3328); }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* Round icon button (theme toggle) shared by the app shell and sign-in pages. */
+.icon-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--glass-line); background: var(--glass); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.icon-btn .sun { display: none; }
+:root[data-theme="dark"] .icon-btn .sun { display: block; }
+:root[data-theme="dark"] .icon-btn .moon { display: none; }

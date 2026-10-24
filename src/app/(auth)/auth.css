@@ -1,0 +1,14 @@
+/* Sign-in and sign-up: the Clerk card on a calm emerald sky. */
+.auth { min-height: 100vh; display: flex; flex-direction: column;
+  background: radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, color-mix(in srgb, var(--mint) 22%, transparent), transparent 60%),
+    color-mix(in srgb, var(--mint) 6%, #f4faf7); }
+:root[data-theme="dark"] .auth { background: radial-gradient(1200px 600px at 80% -10%, rgba(245, 197, 66, 0.12), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, rgba(46, 230, 166, 0.12), transparent 60%), #04140f; }
+.auth-head { display: flex; align-items: center; justify-content: space-between; padding: 16px max(16px, env(safe-area-inset-left)); }
+.auth .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 19px; font-weight: 700; }
+.auth-main { flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(24px, 6vw, 80px); padding: 24px 16px 64px; }
+.auth-pitch { max-width: 420px; }
+.auth-pitch h1 { margin: 0 0 12px; font-size: clamp(32px, 5vw, 52px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+.auth-pitch p { margin: 0; font-size: 18px; color: var(--muted); }
+.auth-card-fallback { width: min(400px, 100%); min-height: 420px; border-radius: 20px; background: var(--bot-bg); border: 1px solid var(--glass-line); }

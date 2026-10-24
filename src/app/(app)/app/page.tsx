@@ -1,30 +1,45 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+import { claimInvites, listPlans } from "@/lib/plan-store";
+import { requireMe } from "@/lib/session";
+import { goalLine, ROLE_LABEL } from "./format";
 
 export const metadata: Metadata = { title: "Your kingdoms · Ledgerlands" };
-
-// Phase 0 placeholder: shows the shape of the plans screen. Sign-in and real plans arrive in Phase 1.
-const EXAMPLE_PLANS = [
-  { name: "Family retirement", line: "Shared with your family" },
-  { name: "Stocks", line: "Personal, higher risk" },
-  { name: "Commodities", line: "Gold and silver" },
-];
 
 export default function KingdomsPage() {
   return (
     <>
-      <span className="preview-tag">Preview · sign-in arrives in Phase 1</span>
       <h1>Your kingdoms</h1>
-      <p className="lede">Each plan is its own kingdom, with its own goal, target mix and projections. Make one for the family, one for stocks, one for anything you save toward.</p>
-      <div className="plans">
-        {EXAMPLE_PLANS.map((p) => (
-          <div key={p.name} className="plan-card">
-            <b>{p.name}</b>
-            <span>{p.line}</span>
-            <span>Example plan</span>
-          </div>
-        ))}
-        <div className="plan-card new">+ New plan</div>
-      </div>
+      <p className="lede">Each plan is its own kingdom, with its own goal and, soon, its own buildings and projections. Make one for the family, one for stocks, one for anything you save toward.</p>
+      <Suspense fallback={<div className="plans"><div className="plan-card skeleton" /><div className="plan-card skeleton" /></div>}>
+        <Plans />
+      </Suspense>
     </>
+  );
+}
+
+async function Plans() {
+  const me = await requireMe();
+  await claimInvites(me.userId, me.verifiedEmails);
+  const plans = await listPlans(me.userId);
+  return (
+    <div className="plans">
+      {plans.map((p) => (
+        <Link key={p.id} href={`/app/plans/${p.id}`} className="plan-card">
+          <span className="kind">{p.kind}</span>
+          <b>{p.name}</b>
+          <span>{goalLine(p)}</span>
+          <span className="meta">
+            {ROLE_LABEL[p.role]}
+            {p.members > 1 ? ` · ${p.members} people` : ""}
+          </span>
+        </Link>
+      ))}
+      <Link href="/app/new" className="plan-card new">
+        <span className="plus" aria-hidden="true">+</span>
+        {plans.length ? "New kingdom" : "Found your first kingdom"}
+      </Link>
+    </div>
   );
 }

@@ -119,7 +119,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
 
 @media (max-width: 760px) {
   .dots { display: none; }
-  nav a.link { display: none; }
+  nav a.link:not(.keep) { display: none; }
   nav { gap: 10px; }
   .sky { padding-top: 13vh; }
 }
