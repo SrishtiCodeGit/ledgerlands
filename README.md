@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ledgerlands
 
-## Getting Started
+Your portfolio as a living 3D kingdom. Every holding becomes a building: gains glow, dips darken, and an AI guide (the Steward) explains what moved in plain words.
 
-First, run the development server:
+Live: https://ledgerlands-site.vercel.app
+
+## Run it locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Checks
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run check   # lint, type-check, unit tests
+npm run build   # production build
+```
 
-## Learn More
+CI runs both on every push (`.github/workflows/ci.yml`). Pushes to `main` deploy to production on Vercel.
 
-To learn more about Next.js, take a look at the following resources:
+## Layout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Path | What it is |
+| --- | --- |
+| `src/app/(marketing)` | Landing page: full-screen 3D kingdom, sky text, Steward early-access bot |
+| `src/app/(app)` | Product shell: kingdoms (`/app`) and Learn Finance (`/learn`) |
+| `src/app/api/early-access` | Saves early-access signups as private files in Vercel Blob |
+| `src/lib` | Theme handling and signup validation (with tests) |
+| `public/legacy` | The 3D world and bot as plain scripts; they become React components in Phase 2 |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment
 
-## Deploy on Vercel
+`BLOB_READ_WRITE_TOKEN` comes from the connected Vercel Blob store. Pull it with `vercel env pull`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Plan
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Build plan, Monte Carlo methodology and decision log: [Ledgerlands · Build Plan & Methodology](https://claude.ai/artifact/UMyTrjrqsGrCQeKtoVNzYM).
