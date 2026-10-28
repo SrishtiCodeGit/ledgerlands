@@ -454,7 +454,10 @@
     // ----- tiers: a building gains detail as its holding grows -----
     // 1 Outpost: the bare building inside a wooden fence. 2 Manor: gardens and a banner.
     // 3 Stronghold: a low stone wall, lanterns and a side wing. 4 Citadel: a second wing, gold crown and a beacon.
-    var TIER_SCALE = [0.74, 0.88, 1, 1.06];
+    // Tiers must read from the overview camera, so each one also changes the plot's ground, the size and the skyline.
+    var TIER_SCALE = [0.62, 0.84, 1.02, 1.2];
+    var PLOT_MAT = [M({ color: 0x7a5a36 }), M({ color: 0xd8c79a }), M({ color: 0x9b9a90 }), M({ color: 0xe9dcb5 })];
+    var MAT_BEAM = new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
     var MAT_HEDGE = M({ color: 0x3f7a35 }), MAT_FLOWER = M({ color: 0xffb37a }), MAT_FLOWER2 = M({ color: 0xf5c542 });
     var MAT_BANNER = [M({ color: 0x16a372, side: THREE.DoubleSide }), M({ color: 0xc9a227, side: THREE.DoubleSide })];
     function lantern(g, x, z) {
@@ -476,7 +479,7 @@
       var rail = box(alongX ? len : 0.05, 0.05, alongX ? 0.05 : len, MAT.wood); rail.position.set(x, 0.3, z); g.add(rail);
     }
     function wallPiece(g, x, z, len, alongX) {
-      var w = texturedBox(alongX ? len : 0.24, 0.45, alongX ? 0.24 : len, MAT.stone, MAT.stoneTop, 2); w.position.set(x, 0.22, z); g.add(w);
+      var w = texturedBox(alongX ? len : 0.3, 0.75, alongX ? 0.3 : len, MAT.stone, MAT.stoneTop, 2); w.position.set(x, 0.37, z); g.add(w);
     }
     function wing(g, x, z, rot) {
       var a = new THREE.Group();
@@ -487,13 +490,20 @@
     }
     function banner(g, x, z, h, mat) {
       var pole = box(0.05, h, 0.05, MAT.iron); pole.position.set(x, h / 2, z); g.add(pole);
-      var cloth = box(0.32, 0.6, 0.02, mat); cloth.position.set(x + 0.18, h - 0.36, z); g.add(cloth);
+      var cloth = box(0.5, 0.95, 0.03, mat); cloth.position.set(x + 0.27, h - 0.55, z); g.add(cloth);
       var tip = box(0.08, 0.08, 0.08, MAT.gold); tip.position.set(x, h + 0.04, z); g.add(tip);
     }
     // Plot half-width for each kind of building, so walls, gardens and wings clear the building itself.
     var PLOT = { tower: 1.5, wizard: 1.5, vault: 1.7, mine: 1.7, hall: 1.9 };
+    function turret(g, x, z, roof) {
+      var t = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 1.5, 10), MAT.stone)); t.position.set(x, 0.75, z); g.add(t);
+      var r = shadowed(new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.7, 10), roof)); r.position.set(x, 1.85, z); g.add(r);
+    }
     function decorate(g, style, tier, top) {
       var R = PLOT[style] || 1.6, c = R - 0.55;
+      // The plot itself: bare earth, a gravel yard, a paved court, a pale plaza with a gold edge.
+      var plot = box(2 * R + 0.5, 0.08, 2 * R + 0.5, PLOT_MAT[tier - 1]); plot.position.y = 0.04; plot.castShadow = false; g.add(plot);
+      if (tier === 4) { var edge = box(2 * R + 0.7, 0.05, 2 * R + 0.7, MAT.gold); edge.position.y = 0.025; edge.castShadow = false; g.add(edge); }
       if (tier === 1) { ring(g, R, fencePiece); return top; }
       // Manor: hedges and flowers either side of the path in, and a banner (the market hall has its stalls instead).
       if (style !== "hall") [-1, 1].forEach(function (s) {
@@ -507,17 +517,22 @@
       ring(g, R + 0.1, wallPiece);
       lantern(g, -0.55, R + 0.4); lantern(g, 0.55, R + 0.4);
       wing(g, -c, -c, 0.3);
+      turret(g, -(R + 0.1), -(R + 0.1), tier === 4 ? MAT.gold : ROOF.slateCone); turret(g, R + 0.1, -(R + 0.1), tier === 4 ? MAT.gold : ROOF.slateCone);
       if (tier === 3) return top;
+      turret(g, -(R + 0.1), R + 0.1, MAT.gold); turret(g, R + 0.1, R + 0.1, MAT.gold);
       // Citadel: a second wing, a gold crown at the top and a beacon that glows at night.
       wing(g, c, -c, -0.3);
       banner(g, -(R - 0.2), R - 0.2, 2.3, MAT_BANNER[1]);
-      var crown = shadowed(new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.07, 8, 20), MAT.gold)); crown.rotation.x = Math.PI / 2; crown.position.y = top + 0.15; g.add(crown);
-      for (var k = 0; k < 5; k++) {
-        var a = k / 5 * Math.PI * 2, spike = shadowed(new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 6), MAT.gold));
-        spike.position.set(Math.cos(a) * 0.42, top + 0.28, Math.sin(a) * 0.42); g.add(spike);
+      var crown = shadowed(new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.11, 8, 24), MAT.gold)); crown.rotation.x = Math.PI / 2; crown.position.y = top + 0.2; g.add(crown);
+      for (var k = 0; k < 6; k++) {
+        var a = k / 6 * Math.PI * 2, spike = shadowed(new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.38, 6), MAT.gold));
+        spike.position.set(Math.cos(a) * 0.6, top + 0.42, Math.sin(a) * 0.6); g.add(spike);
       }
-      var beacon = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), MAT.glow); beacon.position.y = top + 0.35; g.add(beacon);
-      return top + 0.5;
+      var beacon = new THREE.Mesh(new THREE.SphereGeometry(0.26, 14, 12), MAT.glow); beacon.position.y = top + 0.5; g.add(beacon);
+      // A soft column of light above the beacon, so a Citadel is easy to spot from anywhere.
+      var beam = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.45, 7, 16, 1, true), MAT_BEAM); beam.position.y = top + 4.1; beam.castShadow = false; g.add(beam);
+      g.userData.beam = beam;
+      return top + 0.8;
     }
 
     // ----- black birds: two V formations circling the kingdom -----
@@ -609,7 +624,8 @@
       scene.add(patch(spot.x, spot.z, spot.w - 0.5, spot.d - 0.5, GROUND[GROUND_FOR[f.style]]));
       var n = f.members.length, cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols);
       var cw = (spot.w - 0.8) / cols, cd = (spot.d - 0.8) / rows;
-      var scale = Math.min(1, Math.min(cw, cd) / 3.8); // a plot with its walls is about 3.8 wide
+      // Leave room for the biggest plot this district could hold (a Citadel, with its gold edge and turrets).
+      var scale = Math.min(1, Math.min(cw, cd) / ((2 * (PLOT[f.style] || 1.6) + 0.9) * TIER_SCALE[3]));
       f.members.forEach(function (h, j) {
         var c = j % cols, r = Math.floor(j / cols);
         var g = new THREE.Group();
@@ -624,6 +640,7 @@
         var fl = flagFor(g, top, up ? FLAG_UP : FLAG_DOWN);
         anims.push({ type: "flag", mesh: fl, phase: i * 2 + j });
         if (g.userData.spin) anims.push({ type: "spin", mesh: g.userData.spin });
+        if (g.userData.beam) anims.push({ type: "beam", mesh: g.userData.beam, phase: j });
         g.userData.finalScale = bScale;
         g.userData.holdingId = h.id;
         pickables.push(g);
@@ -834,6 +851,7 @@
       anims.forEach(function (a) {
         if (a.type === "flag") a.mesh.rotation.y = Math.sin(t * 2.0 + a.phase) * 0.22;
         else if (a.type === "spin") a.mesh.rotation.y = t * 1.2;
+        else if (a.type === "beam") a.mesh.scale.set(1 + Math.sin(t * 1.6 + a.phase) * 0.12, 1, 1 + Math.sin(t * 1.6 + a.phase) * 0.12);
         else {
           var shown = a.owner.visible && a.owner.scale.y > (a.owner.userData.finalScale || 1) * 0.95;
           a.mesh.visible = shown;
