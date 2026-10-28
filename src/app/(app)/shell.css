@@ -146,3 +146,9 @@ a.plan-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb
   .realm { border-radius: 22px; }
   .h-num { align-items: flex-start; }
 }
+
+/* Building tiers */
+.h-main .tier { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; color: var(--faint); }
+.h-main .tier b { color: var(--ink); font-weight: 600; }
+.tier-bar { display: inline-block; width: 64px; height: 6px; border-radius: 999px; background: var(--bubble); overflow: hidden; }
+.tier-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--mint), var(--gold)); }

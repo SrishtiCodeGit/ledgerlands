@@ -21,7 +21,7 @@ export function loadScript(src: string): Promise<void> {
 }
 
 // What public/legacy/world.js puts on window.
-export type KingdomBuilding = { id: string; style: string; cost: number; value: number };
+export type KingdomBuilding = { id: string; style: string; cost: number; value: number; tier: number };
 export type KingdomHandle = { destroy(): void };
 declare global {
   interface Window {

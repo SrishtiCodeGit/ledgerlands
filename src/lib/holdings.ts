@@ -106,3 +106,29 @@ export function summarize(holdings: HoldingInput[], goalAmount: number | null): 
     goalPct: goalAmount ? Math.min(100, (value / goalAmount) * 100) : null,
   };
 }
+
+// ----- building tiers -----
+// A building grows through four tiers as its holding's value grows: Outpost, Manor, Stronghold, Citadel.
+// Steps are in US dollars and scaled for other currencies so a tier means roughly the same amount everywhere.
+export const TIER_NAMES = ["Outpost", "Manor", "Stronghold", "Citadel"] as const;
+export type Tier = 1 | 2 | 3 | 4;
+const TIER_STEPS_USD = [1_000, 10_000, 50_000];
+const CURRENCY_SCALE: Record<string, number> = { USD: 1, EUR: 1, GBP: 1, CAD: 1.4, AUD: 1.5, INR: 80 };
+
+export function tierSteps(currency: string): number[] {
+  const k = CURRENCY_SCALE[currency] ?? 1;
+  return TIER_STEPS_USD.map((s) => s * k);
+}
+
+export function tierFor(value: number, currency: string): Tier {
+  const steps = tierSteps(currency);
+  return (1 + steps.filter((s) => value >= s).length) as Tier;
+}
+
+// How far a holding is from its next tier, for the "grows into a Stronghold at $10,000" hint.
+export function nextTier(value: number, currency: string): { name: string; at: number; progress: number } | null {
+  const t = tierFor(value, currency);
+  if (t === 4) return null;
+  const steps = tierSteps(currency), from = t === 1 ? 0 : steps[t - 2], at = steps[t - 1];
+  return { name: TIER_NAMES[t], at, progress: Math.max(0, Math.min(1, (value - from) / (at - from))) };
+}

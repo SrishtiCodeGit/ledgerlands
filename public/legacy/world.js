@@ -451,6 +451,75 @@
       }
     };
 
+    // ----- tiers: a building gains detail as its holding grows -----
+    // 1 Outpost: the bare building inside a wooden fence. 2 Manor: gardens and a banner.
+    // 3 Stronghold: a low stone wall, lanterns and a side wing. 4 Citadel: a second wing, gold crown and a beacon.
+    var TIER_SCALE = [0.74, 0.88, 1, 1.06];
+    var MAT_HEDGE = M({ color: 0x3f7a35 }), MAT_FLOWER = M({ color: 0xffb37a }), MAT_FLOWER2 = M({ color: 0xf5c542 });
+    var MAT_BANNER = [M({ color: 0x16a372, side: THREE.DoubleSide }), M({ color: 0xc9a227, side: THREE.DoubleSide })];
+    function lantern(g, x, z) {
+      var post = box(0.07, 0.75, 0.07, MAT.iron); post.position.set(x, 0.37, z); g.add(post);
+      var lamp = box(0.17, 0.2, 0.17, MAT.glow); lamp.position.set(x, 0.84, z); lamp.castShadow = false; g.add(lamp);
+      var cap = pyramid(0.26, 0.14, MAT.iron); cap.position.set(x, 1.0, z); g.add(cap);
+    }
+    function ring(g, R, piece) {
+      // Four sides around the plot, leaving a gap at the front (+z) for the path in.
+      piece(g, 0, -R, 2 * R, true); piece(g, -R, 0, 2 * R, false); piece(g, R, 0, 2 * R, false);
+      piece(g, -R * 0.62, R, R * 0.76, true); piece(g, R * 0.62, R, R * 0.76, true);
+    }
+    function fencePiece(g, x, z, len, alongX) {
+      var n = Math.max(2, Math.round(len / 0.45));
+      for (var i = 0; i <= n; i++) {
+        var t = i / n - 0.5, p = box(0.07, 0.42, 0.07, MAT.woodLight);
+        p.position.set(alongX ? x + t * len : x, 0.21, alongX ? z : z + t * len); g.add(p);
+      }
+      var rail = box(alongX ? len : 0.05, 0.05, alongX ? 0.05 : len, MAT.wood); rail.position.set(x, 0.3, z); g.add(rail);
+    }
+    function wallPiece(g, x, z, len, alongX) {
+      var w = texturedBox(alongX ? len : 0.24, 0.45, alongX ? 0.24 : len, MAT.stone, MAT.stoneTop, 2); w.position.set(x, 0.22, z); g.add(w);
+    }
+    function wing(g, x, z, rot) {
+      var a = new THREE.Group();
+      var b = texturedBox(0.9, 1.0, 0.9, MAT.stone, MAT.stoneTop, 1.6); b.position.y = 0.5; a.add(b);
+      var r = pyramid(1.05, 0.8, ROOF.slateCone); r.position.y = 1.4; a.add(r);
+      var w = box(0.18, 0.26, 0.04, MAT.glow); w.position.set(0, 0.6, 0.46); w.castShadow = false; a.add(w);
+      a.position.set(x, 0, z); a.rotation.y = rot || 0; g.add(a);
+    }
+    function banner(g, x, z, h, mat) {
+      var pole = box(0.05, h, 0.05, MAT.iron); pole.position.set(x, h / 2, z); g.add(pole);
+      var cloth = box(0.32, 0.6, 0.02, mat); cloth.position.set(x + 0.18, h - 0.36, z); g.add(cloth);
+      var tip = box(0.08, 0.08, 0.08, MAT.gold); tip.position.set(x, h + 0.04, z); g.add(tip);
+    }
+    // Plot half-width for each kind of building, so walls, gardens and wings clear the building itself.
+    var PLOT = { tower: 1.5, wizard: 1.5, vault: 1.7, mine: 1.7, hall: 1.9 };
+    function decorate(g, style, tier, top) {
+      var R = PLOT[style] || 1.6, c = R - 0.55;
+      if (tier === 1) { ring(g, R, fencePiece); return top; }
+      // Manor: hedges and flowers either side of the path in, and a banner (the market hall has its stalls instead).
+      if (style !== "hall") [-1, 1].forEach(function (s) {
+        var len = R - 1.0, x = s * (0.55 + len / 2);
+        var hedge = box(len, 0.3, 0.26, MAT_HEDGE); hedge.position.set(x, 0.15, R - 0.2); g.add(hedge);
+        for (var i = 0; i < 3; i++) { var fl = box(0.09, 0.09, 0.09, i % 2 ? MAT_FLOWER : MAT_FLOWER2); fl.position.set(x + (i - 1) * len * 0.3, 0.34, R - 0.2); fl.castShadow = false; g.add(fl); }
+      });
+      banner(g, R - 0.2, R - 0.2, 1.9, MAT_BANNER[0]);
+      if (tier === 2) return top;
+      // Stronghold: a low stone wall, lanterns either side of the way in, a side wing at the back.
+      ring(g, R + 0.1, wallPiece);
+      lantern(g, -0.55, R + 0.4); lantern(g, 0.55, R + 0.4);
+      wing(g, -c, -c, 0.3);
+      if (tier === 3) return top;
+      // Citadel: a second wing, a gold crown at the top and a beacon that glows at night.
+      wing(g, c, -c, -0.3);
+      banner(g, -(R - 0.2), R - 0.2, 2.3, MAT_BANNER[1]);
+      var crown = shadowed(new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.07, 8, 20), MAT.gold)); crown.rotation.x = Math.PI / 2; crown.position.y = top + 0.15; g.add(crown);
+      for (var k = 0; k < 5; k++) {
+        var a = k / 5 * Math.PI * 2, spike = shadowed(new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 6), MAT.gold));
+        spike.position.set(Math.cos(a) * 0.42, top + 0.28, Math.sin(a) * 0.42); g.add(spike);
+      }
+      var beacon = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), MAT.glow); beacon.position.y = top + 0.35; g.add(beacon);
+      return top + 0.5;
+    }
+
     // ----- black birds: two V formations circling the kingdom -----
     var birdMat = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.8, side: THREE.DoubleSide });
     var wingGeoL = new THREE.BufferGeometry();
@@ -500,13 +569,13 @@
     }
 
     // ----- the holdings: the plan's own, or the example kingdom (six holdings in five districts) -----
-    var HOLD = planMode ? opts.holdings.slice(0, 48).map(function (h) { return { id: h.id, fam: h.style, style: h.style, inv: h.cost, cur: h.value }; }) : [
-      { fam: "Stocks", style: "tower", inv: 2400, cur: 2830 },
-      { fam: "Stocks", style: "tower", inv: 1800, cur: 2600 },
-      { fam: "Funds", style: "hall", inv: 4000, cur: 4420 },
-      { fam: "Gold", style: "mine", inv: 1500, cur: 1680 },
-      { fam: "Bonds", style: "vault", inv: 1500, cur: 1430 },
-      { fam: "Crypto", style: "wizard", inv: 900, cur: 1180 }
+    var HOLD = planMode ? opts.holdings.slice(0, 48).map(function (h) { return { id: h.id, fam: h.style, style: h.style, inv: h.cost, cur: h.value, tier: h.tier }; }) : [
+      { fam: "Stocks", style: "tower", inv: 2400, cur: 2830, tier: 3 },
+      { fam: "Stocks", style: "tower", inv: 1800, cur: 2600, tier: 2 },
+      { fam: "Funds", style: "hall", inv: 4000, cur: 4420, tier: 4 },
+      { fam: "Gold", style: "mine", inv: 1500, cur: 1680, tier: 2 },
+      { fam: "Bonds", style: "vault", inv: 1500, cur: 1430, tier: 1 },
+      { fam: "Crypto", style: "wizard", inv: 900, cur: 1180, tier: 2 }
     ];
     var GROUND_FOR = { tower: "pave", hall: "market", mine: "gravel", wizard: "cobble", vault: "pave" };
     var FLAG_UP = 0x2fa860, FLAG_DOWN = 0xd9443a;
@@ -540,11 +609,13 @@
       scene.add(patch(spot.x, spot.z, spot.w - 0.5, spot.d - 0.5, GROUND[GROUND_FOR[f.style]]));
       var n = f.members.length, cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols);
       var cw = (spot.w - 0.8) / cols, cd = (spot.d - 0.8) / rows;
-      var scale = Math.min(1, Math.min(cw, cd) / 3.0);
+      var scale = Math.min(1, Math.min(cw, cd) / 3.8); // a plot with its walls is about 3.8 wide
       f.members.forEach(function (h, j) {
         var c = j % cols, r = Math.floor(j / cols);
         var g = new THREE.Group();
-        var top = BUILD[f.style](g, Math.sqrt(h.cur / maxV));
+        var tier = Math.max(1, Math.min(4, h.tier || 2));
+        var top = decorate(g, f.style, tier, BUILD[f.style](g, Math.sqrt(h.cur / maxV)));
+        var bScale = scale * TIER_SCALE[tier - 1];
         var up = h.cur >= h.inv;
         if (!up) g.traverse(function (o) {
           if (o.isMesh && o.material && !Array.isArray(o.material) && o.material.color && o.material !== MAT.glow) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.6); }
@@ -553,14 +624,14 @@
         var fl = flagFor(g, top, up ? FLAG_UP : FLAG_DOWN);
         anims.push({ type: "flag", mesh: fl, phase: i * 2 + j });
         if (g.userData.spin) anims.push({ type: "spin", mesh: g.userData.spin });
-        g.userData.finalScale = scale;
+        g.userData.finalScale = bScale;
         g.userData.holdingId = h.id;
         pickables.push(g);
-        g.scale.setScalar(scale);
+        g.scale.setScalar(bScale);
         g.position.set(spot.x - (spot.w - 0.8) / 2 + cw * (c + 0.5), 0, spot.z - (spot.d - 0.8) / 2 + cd * (r + 0.5));
         scene.add(g);
         risers.push({ obj: g, delay: 1.1 + risers.length * 0.55 });
-        addFx(g, up, (top + 0.4) * scale);
+        addFx(g, up, (top + 0.4) * bScale);
       });
     });
 

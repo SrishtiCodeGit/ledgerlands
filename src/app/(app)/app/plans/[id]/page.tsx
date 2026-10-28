@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { costOf, STYLE_FOR, summarize, valueOf } from "@/lib/holdings";
+import { costOf, nextTier, STYLE_FOR, summarize, TIER_NAMES, tierFor, valueOf } from "@/lib/holdings";
 import { can } from "@/lib/plans";
 import { getPlan, listHoldings, listMembers } from "@/lib/plan-store";
 import { requireMe } from "@/lib/session";
@@ -35,11 +35,11 @@ async function PlanDetail({ params }: { params: Promise<{ id: string }> }) {
   const sum = summarize(holdings, plan.goalAmount);
   const cur = plan.currency;
 
-  const buildings = holdings.map((h) => ({ id: h.id, style: STYLE_FOR[h.assetClass], cost: costOf(h), value: valueOf(h) }));
+  const buildings = holdings.map((h) => ({ id: h.id, style: STYLE_FOR[h.assetClass], cost: costOf(h), value: valueOf(h), tier: tierFor(valueOf(h), cur) }));
   const labels: Record<string, BuildingLabel> = Object.fromEntries(
     holdings.map((h) => {
       const gain = valueOf(h) - costOf(h);
-      return [h.id, { name: `${h.name} · ${BUILDING_NAME[STYLE_FOR[h.assetClass]]}`, line: `${money(valueOf(h), cur)} (${signedMoney(gain, cur)})`, up: gain >= 0 }];
+      return [h.id, { name: `${h.name} · ${TIER_NAMES[tierFor(valueOf(h), cur) - 1]} ${BUILDING_NAME[STYLE_FOR[h.assetClass]].toLowerCase()}`, line: `${money(valueOf(h), cur)} (${signedMoney(gain, cur)})`, up: gain >= 0 }];
     }),
   );
 
@@ -69,7 +69,7 @@ async function PlanDetail({ params }: { params: Promise<{ id: string }> }) {
       {holdings.length === 0 && editable && (
         <section className="panel first-run" id="add">
           <h2>Add your first building</h2>
-          <p>Tell us one thing this kingdom holds. Stocks become towers, funds become market halls, gold becomes a mine, bonds and cash a vault, crypto a crystal spire.</p>
+          <p>Tell us one thing this kingdom holds. Stocks become towers, funds become market halls, gold becomes a mine, bonds and cash a vault, crypto a crystal spire. Each starts as an Outpost and grows into a Manor, a Stronghold and finally a Citadel as its value grows.</p>
           <HoldingForm action={addHolding.bind(null, plan.id)} currency={cur} submit="Raise building" />
         </section>
       )}
@@ -97,12 +97,21 @@ async function PlanDetail({ params }: { params: Promise<{ id: string }> }) {
           </p>
           <ul className="holdings">
             {holdings.map((h) => {
-              const value = valueOf(h), gain = value - costOf(h);
+              const value = valueOf(h), gain = value - costOf(h), next = nextTier(value, cur);
               return (
                 <li key={h.id}>
                   <div className="h-main">
                     <b>{h.name}{h.symbol ? <span className="sym"> {h.symbol}</span> : null}</b>
-                    <span>{h.assetClass} · {BUILDING_NAME[STYLE_FOR[h.assetClass]]} · {h.quantity.toLocaleString("en-US")} × {moneyExact(h.unitPrice, cur)}</span>
+                    <span>{h.assetClass} · {h.quantity.toLocaleString("en-US")} × {moneyExact(h.unitPrice, cur)}</span>
+                    <span className="tier">
+                      <b>{TIER_NAMES[tierFor(value, cur) - 1]} {BUILDING_NAME[STYLE_FOR[h.assetClass]].toLowerCase()}</b>
+                      {next ? (
+                        <>
+                          <span className="tier-bar" aria-hidden="true"><i style={{ width: `${next.progress * 100}%` }} /></span>
+                          grows into a {next.name} at {money(next.at, cur)}
+                        </>
+                      ) : " · the highest tier"}
+                    </span>
                   </div>
                   <div className="h-num">
                     <b>{money(value, cur)}</b>

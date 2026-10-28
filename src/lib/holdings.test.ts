@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkHolding, summarize, STYLE_FOR, ASSET_CLASSES, type HoldingInput } from "./holdings.ts";
+import { checkHolding, summarize, STYLE_FOR, ASSET_CLASSES, tierFor, nextTier, type HoldingInput } from "./holdings.ts";
 
 const good = { name: " Apple ", symbol: "aapl", assetClass: "Stocks", quantity: "10", unitCost: "$150.25", unitPrice: "182.50" };
 
@@ -54,4 +54,12 @@ test("an empty kingdom sums to zero", () => {
 
 test("every kind of holding has a building", () => {
   for (const c of ASSET_CLASSES) assert.ok(STYLE_FOR[c]);
+});
+
+test("buildings grow through four tiers as value grows", () => {
+  assert.deepEqual([500, 1000, 9999, 10000, 49999, 50000, 2e6].map((v) => tierFor(v, "USD")), [1, 2, 2, 3, 3, 4, 4]);
+  assert.equal(tierFor(50000, "INR"), 1, "tiers scale with the currency");
+  assert.equal(tierFor(4_000_000, "INR"), 4);
+  assert.deepEqual(nextTier(5500, "USD"), { name: "Stronghold", at: 10000, progress: 0.5 });
+  assert.equal(nextTier(60000, "USD"), null);
 });
