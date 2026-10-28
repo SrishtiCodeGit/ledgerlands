@@ -33,7 +33,7 @@ CI runs both on every push (`.github/workflows/ci.yml`). Pushes to `main` deploy
 | `src/lib` | Plan rules and signup validation (with tests), database queries, session helpers, theme |
 | `src/proxy.ts` | Clerk session on each request; pages and Server Functions check sign-in themselves |
 | `db/schema.sql` | Database tables (plans, plan members, holdings) |
-| `public/legacy` | The 3D world (`world.js`, mounted by the landing page and by each plan page with its own holdings) and the Steward bot, as plain scripts |
+| `public/legacy` | Plain scripts: the 3D world (`world.js`, mounted by the landing page and by each plan page with its own holdings), the Golden Owl (`owl.js`) and the Steward bot |
 
 ## Environment
 

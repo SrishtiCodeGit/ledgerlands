@@ -45,7 +45,7 @@ async function PlanDetail({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <>
-      <KingdomView buildings={buildings} labels={labels}>
+      <KingdomView buildings={buildings} labels={labels} mood={!holdings.length || Math.abs(sum.gain) < 0.005 ? "flat" : sum.gain > 0 ? "up" : "down"}>
         <span className="kind">{plan.kind} · {ROLE_LABEL[plan.role]}</span>
         <h1>{plan.name}</h1>
         {holdings.length ? (

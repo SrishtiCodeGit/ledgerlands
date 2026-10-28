@@ -54,6 +54,7 @@ export default function LandingEffects() {
     let world: KingdomHandle | null = null;
     loadScript("/legacy/bot.js")
       .then(() => loadScript(THREE_URL))
+      .then(() => loadScript("/legacy/owl.js"))
       .then(() => loadScript("/legacy/world.js"))
       .then(() => {
         const host = document.getElementById("world");

@@ -3,7 +3,8 @@
   // Draws a kingdom into a host element and returns { destroy }, or null when 3D isn't available.
   // The landing page mounts the example kingdom with a camera tied to scroll. A plan page passes
   // opts.holdings ([{ id, style, cost, value }]) and gets its own kingdom with a camera you drag around;
-  // opts.onHover(id | null, clientX, clientY) reports the building under the pointer.
+  // opts.onHover(id | null, clientX, clientY) reports the building under the pointer, and opts.mood
+  // ("up" | "down" | "flat") sets how the Golden Owl behaves when owl.js is loaded first.
   function mount(host, opts) {
   opts = opts || {};
   var planMode = Array.isArray(opts.holdings);
@@ -535,6 +536,49 @@
       return top + 0.8;
     }
 
+    // ----- the Golden Owl (public/legacy/owl.js, when loaded) -----
+    // It perches on the castle gate, turns to face you, greets when it lands, and every so often flies a loop
+    // around the island. On a plan page it also shows how the kingdom is doing: cheering now and then when
+    // it is up overall (opts.mood "up"), drooping while it is down ("down").
+    var owl = null, OWL_PERCH = new THREE.Vector3(0, 1.85, E + 0.02), owlS = null;
+    if (window.LLOwl) {
+      owl = window.LLOwl.create(THREE, { reduceMotion: reduceMotion });
+      owl.root.scale.setScalar(0.55); owl.root.position.copy(OWL_PERCH); scene.add(owl.root);
+      if (opts.mood === "down") owl.hold("dip");
+      owlS = { phase: "perch", at: 0, next: 14, from: new THREE.Vector3(), to: new THREE.Vector3(), prev: OWL_PERCH.clone(), a: 0, greeted: false, cheer: 8 };
+    }
+    var owlCircle = function (a, out) { return out.set(Math.cos(a) * 12.5, 6.5 + Math.sin(a * 2) * 0.5, Math.sin(a) * 11); };
+    var owlTmp = new THREE.Vector3();
+    function moveOwl(now) {
+      var S = owlS, el = now - S.at, fly = 0, pos = owl.root.position;
+      S.prev.copy(pos);
+      if (S.phase === "perch") {
+        pos.copy(OWL_PERCH);
+        // Face the camera while perched.
+        var want = Math.atan2(camera.position.x - pos.x, camera.position.z - pos.z), d = want - owl.root.rotation.y;
+        d = Math.atan2(Math.sin(d), Math.cos(d)); owl.root.rotation.y += d * 0.05;
+        if (!S.greeted && now > 4) { owl.react("greet", now); S.greeted = true; }
+        if (opts.mood === "up" && now > S.cheer) { owl.react("gain", now); S.cheer = now + 10; }
+        if (!reduceMotion && el > S.next) { S.phase = "takeoff"; S.at = now; S.from.copy(pos); S.a = Math.atan2(pos.z, pos.x) + 0.6; owlCircle(S.a, S.to); }
+      } else if (S.phase === "takeoff" || S.phase === "land") {
+        var dur = S.phase === "takeoff" ? 2.6 : 3.2, k = Math.min(1, el / dur), e = k * k * (3 - 2 * k);
+        pos.lerpVectors(S.from, S.to, e); pos.y += Math.sin(k * Math.PI) * 1.2;
+        fly = S.phase === "takeoff" ? Math.min(1, k * 3) : Math.min(1, (1 - k) * 3);
+        if (k >= 1) {
+          if (S.phase === "takeoff") { S.phase = "fly"; S.at = now; S.a0 = S.a; }
+          else { S.phase = "perch"; S.at = now; S.next = 16 + Math.random() * 8; owl.react("greet", now); }
+        }
+      } else {
+        S.a = S.a0 + el * 0.22; owlCircle(S.a, pos); fly = 1;
+        if (el > 15) { S.phase = "land"; S.at = now; S.from.copy(pos); S.to.copy(OWL_PERCH); }
+      }
+      if (S.phase !== "perch") {
+        owlTmp.subVectors(pos, S.prev);
+        if (owlTmp.lengthSq() > 1e-6) { var head = Math.atan2(owlTmp.x, owlTmp.z), dh = head - owl.root.rotation.y; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); owl.root.rotation.y += dh * 0.15; }
+      }
+      owl.update(now, fly);
+    }
+
     // ----- black birds: two V formations circling the kingdom -----
     var birdMat = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.8, side: THREE.DoubleSide });
     var wingGeoL = new THREE.BufferGeometry();
@@ -848,6 +892,7 @@
       });
       clouds.forEach(function (c) { var a = c.userData.a + t * c.userData.speed; c.position.x = Math.cos(a) * c.userData.r; c.position.z = Math.sin(a) * c.userData.r; });
       flyBirds(t);
+      if (owl) moveOwl(since);
       anims.forEach(function (a) {
         if (a.type === "flag") a.mesh.rotation.y = Math.sin(t * 2.0 + a.phase) * 0.22;
         else if (a.type === "spin") a.mesh.rotation.y = t * 1.2;
