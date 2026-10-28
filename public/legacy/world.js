@@ -543,7 +543,7 @@
     var owl = null, OWL_PERCH = new THREE.Vector3(0, 1.85, E + 0.02), owlS = null;
     if (window.LLOwl) {
       owl = window.LLOwl.create(THREE, { reduceMotion: reduceMotion });
-      owl.root.scale.setScalar(0.55); owl.root.position.copy(OWL_PERCH); scene.add(owl.root);
+      owl.root.scale.setScalar(0.72); owl.root.position.copy(OWL_PERCH); scene.add(owl.root);
       if (opts.mood === "down") owl.hold("dip");
       owlS = { phase: "perch", at: 0, next: 14, from: new THREE.Vector3(), to: new THREE.Vector3(), prev: OWL_PERCH.clone(), a: 0, greeted: false, cheer: 8 };
     }
