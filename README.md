@@ -1,5 +1,7 @@
 # Ledgerlands
 
+![Ledgerlands: a portfolio as a living 3D kingdom, with the Golden Owl, then a kingdom opened full screen](docs/ledgerlands.gif)
+
 Your portfolio as a living 3D kingdom. Every holding becomes a building: gains glow, dips darken, and an AI guide (the Steward) explains what moved in plain words.
 
 Live: https://ledgerlands-site.vercel.app
