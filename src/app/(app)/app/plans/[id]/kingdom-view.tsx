@@ -6,13 +6,23 @@ import { loadScript, THREE_URL, type KingdomBuilding, type KingdomMood } from "@
 export type BuildingLabel = { name: string; line: string; up: boolean };
 
 // The plan's own 3D kingdom: each holding is a building, drawn by public/legacy/world.js.
-// Children float over it (the plan's name, value and goal).
 // mood sets the owl: "up" cheers now and then, "down" droops, "flat" just keeps watch.
-export default function KingdomView({ buildings, labels, mood, children }: { buildings: KingdomBuilding[]; labels: Record<string, BuildingLabel>; mood: KingdomMood; children: React.ReactNode }) {
+// onSelect fires when a building is tapped or clicked without dragging.
+export default function KingdomView({ buildings, labels, mood, onSelect }: {
+  buildings: KingdomBuilding[];
+  labels: Record<string, BuildingLabel>;
+  mood: KingdomMood;
+  onSelect?: (id: string) => void;
+}) {
   const host = useRef<HTMLDivElement>(null);
+  const select = useRef(onSelect);
   const [failed, setFailed] = useState(false);
   const [tip, setTip] = useState<{ id: string; x: number; y: number } | null>(null);
   const key = JSON.stringify(buildings);
+
+  useEffect(() => {
+    select.current = onSelect;
+  }, [onSelect]);
 
   useEffect(() => {
     let alive = true;
@@ -30,6 +40,7 @@ export default function KingdomView({ buildings, labels, mood, children }: { bui
             const r = el.getBoundingClientRect();
             setTip(id ? { id, x: x - r.left, y: y - r.top } : null);
           },
+          onSelect: (id) => select.current?.(id),
         }) ?? null;
         if (!world) setFailed(true);
       })
@@ -44,14 +55,13 @@ export default function KingdomView({ buildings, labels, mood, children }: { bui
   return (
     <div className={`realm${failed ? " flat" : ""}`}>
       <div ref={host} className="realm-canvas" aria-hidden="true" />
-      <div className="realm-over">{children}</div>
       {label && (
         <div className="realm-tip" style={{ left: tip.x, top: tip.y }} role="status">
           <b>{label.name}</b>
           <span className={label.up ? "up" : "down"}>{label.line}</span>
         </div>
       )}
-      {!failed && <span className="realm-hint">Drag to look around</span>}
+      {failed && <p className="realm-failed">The 3D kingdom couldn’t start in this browser. Your buildings are still listed under Buildings.</p>}
     </div>
   );
 }

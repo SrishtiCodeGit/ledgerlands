@@ -3,7 +3,8 @@
   // Draws a kingdom into a host element and returns { destroy }, or null when 3D isn't available.
   // The landing page mounts the example kingdom with a camera tied to scroll. A plan page passes
   // opts.holdings ([{ id, style, cost, value }]) and gets its own kingdom with a camera you drag around;
-  // opts.onHover(id | null, clientX, clientY) reports the building under the pointer, and opts.mood
+  // opts.onHover(id | null, clientX, clientY) reports the building under the pointer, opts.onSelect(id)
+  // reports a building tapped or clicked without dragging, and opts.mood
   // ("up" | "down" | "flat") sets how the Golden Owl behaves when owl.js is loaded first.
   function mount(host, opts) {
   opts = opts || {};
@@ -830,7 +831,8 @@
         }
         pick(e);
       });
-      var endDrag = function (e) { if (drag && !drag.moved) pick(e); drag = null; };
+      // A tap or click without dragging selects the building under the pointer (opts.onSelect).
+      var endDrag = function (e) { if (drag && !drag.moved) { pick(e); if (hoverId && opts.onSelect) opts.onSelect(hoverId); } drag = null; };
       on(cvs, "pointerup", endDrag);
       on(cvs, "pointercancel", function () { drag = null; });
       on(cvs, "pointerleave", function () { if (!drag && hoverId) { hoverId = null; if (opts.onHover) opts.onHover(null, 0, 0); } });

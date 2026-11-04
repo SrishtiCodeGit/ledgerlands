@@ -27,7 +27,7 @@ export type KingdomMood = "up" | "down" | "flat";
 declare global {
   interface Window {
     LLWorld?: {
-      mount(host: HTMLElement, opts?: { holdings?: KingdomBuilding[]; mood?: KingdomMood; onHover?: (id: string | null, x: number, y: number) => void }): KingdomHandle | null;
+      mount(host: HTMLElement, opts?: { holdings?: KingdomBuilding[]; mood?: KingdomMood; onHover?: (id: string | null, x: number, y: number) => void; onSelect?: (id: string) => void }): KingdomHandle | null;
     };
   }
 }
