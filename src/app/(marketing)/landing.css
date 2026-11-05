@@ -44,8 +44,8 @@ h2 { margin: 0; font-size: clamp(30px, 4.2vw, 52px); line-height: 1.1; font-weig
 .scroll-cue svg { animation: bob 2.2s ease-in-out infinite; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-.trio { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 64px; margin-top: 16px; max-width: 980px; }
-.trio div { flex: 1 1 220px; max-width: 280px; display: flex; flex-direction: column; gap: 4px; }
+.trio { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 48px; margin-top: 16px; width: 100%; max-width: 980px; }
+.trio div { flex: 1 1 200px; max-width: 280px; display: flex; flex-direction: column; gap: 4px; }
 .trio b { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 .trio span { font-size: 15.5px; line-height: 1.5; font-weight: 400; color: var(--muted); }
 .trio i { display: block; width: 36px; height: 3px; border-radius: 3px; margin: 0 auto 6px; }
