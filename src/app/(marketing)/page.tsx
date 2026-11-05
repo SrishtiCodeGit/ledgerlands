@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import Logo from "@/components/logo";
 import LandingEffects from "./landing-effects";
 import "./landing.css";
 
@@ -33,14 +34,7 @@ export default function LandingPage() {
 
       <header>
         <a className="brand" href="#top" aria-label="Ledgerlands home">
-          <svg width="30" height="32" viewBox="0 0 64 66" aria-hidden="true">
-            <path d="M32 37 L58 50 L32 63 L6 50 Z" fill="#0a2219" stroke="#f5c542" strokeWidth="2.4" strokeLinejoin="round"></path>
-            <rect x="15.5" y="40" width="7" height="10" rx="1" fill="#2ee6a6"></rect>
-            <rect x="28.5" y="31" width="7" height="19" rx="1" fill="#e9f7f0"></rect>
-            <rect x="41.5" y="20" width="7" height="30" rx="1" fill="#f5c542"></rect>
-            <path d="M45 20 V8" stroke="#f5c542" strokeWidth="2" strokeLinecap="round"></path>
-            <path d="M45 8 L55 11 L45 14 Z" fill="#f5c542"></path>
-          </svg>
+          <Logo />
           Ledgerlands
         </a>
         <nav aria-label="Main">
