@@ -9,8 +9,8 @@
 .shell .tab { min-height: 40px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 15px; color: var(--muted); }
 .shell .tab:hover { color: var(--ink); background: var(--bubble); }
 .shell-main { max-width: 1080px; margin: 0 auto; padding: 48px max(22px, env(safe-area-inset-left)) 80px; display: flex; flex-direction: column; gap: 28px; }
-.shell-main h1 { margin: 0; font-size: clamp(32px, 5vw, 48px); font-weight: 800; letter-spacing: -0.03em; }
-.shell-main .lede { margin: 0; font-size: 18px; color: var(--muted); max-width: 52ch; }
+.shell-main h1 { margin: 0; font-size: clamp(30px, 4.4vw, 44px); font-weight: 600; letter-spacing: -0.028em; }
+.shell-main .lede { margin: 0; font-size: 17px; line-height: 1.6; color: var(--muted); max-width: 52ch; }
 .preview-tag { align-self: flex-start; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--gold); background: color-mix(in srgb, var(--gold) 14%, transparent); }
 .plans { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
 .plan-card { border-radius: 20px; padding: 22px; background: var(--bot-bg); border: 1px solid var(--glass-line); display: flex; flex-direction: column; gap: 8px; min-height: 150px; }

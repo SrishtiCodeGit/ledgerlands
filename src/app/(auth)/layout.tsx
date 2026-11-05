@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <main className="auth-main">
           <div className="auth-pitch">
             <h1>Your kingdom is waiting.</h1>
-            <p>One account, as many kingdoms as you like: one for the family, one for stocks, one for anything you save toward.</p>
+            <p>One account, a kingdom for every goal.</p>
           </div>
           {children}
         </main>

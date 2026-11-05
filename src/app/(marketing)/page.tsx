@@ -52,27 +52,24 @@ export default function LandingPage() {
 
       <main>
         <section id="top" className="sky">
-          <span className="eyebrow rise">Finance, made easy to see</span>
-          <h1 data-split>Money is confusing. <span className="grad">Your kingdom isn&apos;t.</span></h1>
-          <p className="lede rise" style={{ '--d': '700ms' } as CSSProperties}>Ledgerlands turns your investments into a living kingdom. One look tells you what&apos;s growing, what needs care, and what to do next.</p>
+          <h1 data-split>Money is confusing. <span className="accent">Your kingdom isn&apos;t.</span></h1>
+          <p className="lede rise" style={{ '--d': '700ms' } as CSSProperties}>Your investments as a living kingdom. See what&apos;s growing at a glance.</p>
           <div className="row rise" style={{ '--d': '900ms' } as CSSProperties}>
-            <a className="btn primary" href="#early-access">Build your kingdom</a>
-            <a className="btn ghost" href="#why">Why Ledgerlands</a>
+            <a className="btn primary" href="#early-access">Get early access</a>
+            <a className="btn ghost" href="#how">How it works</a>
           </div>
           <a className="scroll-cue rise" style={{ '--d': '1400ms' } as CSSProperties} href="#why">
-            Scroll to fly over the kingdom
+            Scroll
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
           </a>
         </section>
 
         <section id="why" className="sky">
-          <span className="eyebrow rise">Why we built it</span>
           <h2 data-split>If you can read a map, you can read your money.</h2>
-          <p className="lede rise" style={{ '--d': '500ms' } as CSSProperties}>Investing shouldn&apos;t need a finance degree. So we drew your portfolio as a place you already understand.</p>
-          <div className="trio rise" style={{ '--d': '700ms' } as CSSProperties}>
-            <div><i className="i1"></i><b>See it, don&apos;t decode it</b><span>Taller means bigger. Glowing means up. Smoke means it slipped.</span></div>
-            <div><i className="i2"></i><b>Calm, not noisy</b><span>No flashing tickers. Your kingdom changes gently, like real wealth.</span></div>
-            <div><i className="i3"></i><b>A guide on call</b><span>Ask questions in plain words and get answers about your own money.</span></div>
+          <div className="trio rise" style={{ '--d': '500ms' } as CSSProperties}>
+            <div><i className="i1"></i><b>See it, don&apos;t decode it</b><span>Taller is bigger. Glowing is up.</span></div>
+            <div><i className="i2"></i><b>Calm, not noisy</b><span>No flashing tickers. Gentle change.</span></div>
+            <div><i className="i3"></i><b>A guide on call</b><span>Plain questions, plain answers.</span></div>
           </div>
         </section>
 
@@ -80,15 +77,15 @@ export default function LandingPage() {
           <span className="eyebrow rise">How it works</span>
           <h2 data-split>As easy as building a castle.</h2>
           <div className="trio rise" style={{ '--d': '500ms' } as CSSProperties}>
-            <div><span className="num">01</span><b>Add what you own</b><span>Search a stock, fund or coin. A building rises in its district.</span></div>
-            <div><span className="num">02</span><b>Watch it grow</b><span>Buildings grow with their value. Every change tells a story.</span></div>
-            <div><span className="num">03</span><b>Plan ahead</b><span>Set a goal and a mix. You&apos;ll know the moment you drift.</span></div>
+            <div><span className="num">01</span><b>Add what you own</b><span>A building rises for each holding.</span></div>
+            <div><span className="num">02</span><b>Watch it grow</b><span>Outpost to Citadel, as value grows.</span></div>
+            <div><span className="num">03</span><b>Plan ahead</b><span>Set a goal. See how close you are.</span></div>
           </div>
         </section>
 
         <section id="steward" className="sky">
-          <span className="eyebrow rise">Steward · your AI guide</span>
-          <h2 data-split>Ask anything. Get it in plain words.</h2>
+          <span className="eyebrow rise">The Steward</span>
+          <h2 data-split>Ask anything. Get plain answers.</h2>
           <div className="chat">
             <div className="bub q rise" style={{ '--d': '500ms' } as CSSProperties}>Why is my bond vault dark?</div>
             <div className="bub a rise" style={{ '--d': '1100ms' } as CSSProperties}>
@@ -117,8 +114,8 @@ export default function LandingPage() {
         <section id="early-access" className="sky">
           <span className="eyebrow rise">Opening soon</span>
           <h2 data-split>Your first building is one search away.</h2>
-          <p className="lede rise" style={{ '--d': '500ms' } as CSSProperties}>Ledgerlands opens its gates soon, starting with a small group.</p>
-          <div className="row rise" style={{ '--d': '700ms' } as CSSProperties}><a className="btn primary" href="#top">Back to the top</a></div>
+          <p className="lede rise" style={{ '--d': '500ms' } as CSSProperties}>Opening soon, to a small group first.</p>
+          <div className="row rise" style={{ '--d': '700ms' } as CSSProperties}><a className="btn primary" href="#early-access">Get early access</a></div>
         </section>
       </main>
 
@@ -142,7 +139,7 @@ export default function LandingPage() {
 
       <footer>
         <span>© 2026 Ledgerlands</span>
-        <span>Guidance and education, not financial advice.</span>
+        <span>Education, not financial advice.</span>
       </footer>
 
       <LandingEffects />

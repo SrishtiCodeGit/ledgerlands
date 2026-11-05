@@ -33,24 +33,25 @@ nav a.link:hover { opacity: 1; }
 .sky { min-height: 86vh; min-height: 86svh; padding: 13vh max(22px, env(safe-area-inset-left)) 6vh; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; text-shadow: var(--halo); scroll-snap-align: start; }
 #top.sky { min-height: 100vh; min-height: 100svh; }
 .sky.left { align-items: flex-start; text-align: left; max-width: 1180px; margin: 0 auto; }
-h1 { margin: 0; font-size: clamp(46px, 8vw, 104px); line-height: 0.95; font-weight: 800; letter-spacing: -0.045em; max-width: 12ch; text-wrap: balance; }
-h2 { margin: 0; font-size: clamp(34px, 5.2vw, 66px); line-height: 1.04; font-weight: 800; letter-spacing: -0.035em; max-width: 16ch; text-wrap: balance; }
-.grad { background: linear-gradient(90deg, var(--mint), var(--gold) 55%, var(--peach)); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 2px 14px rgba(0,0,0,0.18)); }
-.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold); }
-.lede { margin: 0; font-size: clamp(18px, 2.1vw, 22px); line-height: 1.55; font-weight: 500; color: var(--muted); max-width: 44ch; }
+h1 { margin: 0; font-size: clamp(40px, 6.4vw, 82px); line-height: 1.02; font-weight: 600; letter-spacing: -0.035em; max-width: 13ch; text-wrap: balance; }
+h2 { margin: 0; font-size: clamp(30px, 4.2vw, 52px); line-height: 1.1; font-weight: 600; letter-spacing: -0.028em; max-width: 18ch; text-wrap: balance; }
+/* One solid accent instead of a gradient: the second half of the headline in gold. */
+.accent { color: var(--gold); }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); opacity: .9; }
+.lede { margin: 0; font-size: clamp(17px, 1.7vw, 19px); line-height: 1.6; font-weight: 400; color: var(--muted); max-width: 40ch; }
 .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 6px; }
-.scroll-cue { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; opacity: .85; }
+.scroll-cue { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; opacity: .7; text-decoration: none; }
 .scroll-cue svg { animation: bob 2.2s ease-in-out infinite; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-.trio { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 56px; margin-top: 20px; max-width: 1050px; }
-.trio div { flex: 1 1 240px; max-width: 320px; display: flex; flex-direction: column; gap: 6px; }
-.trio b { font-size: 21px; font-weight: 700; }
-.trio span { font-size: 17px; line-height: 1.5; font-weight: 500; color: var(--muted); }
+.trio { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 64px; margin-top: 16px; max-width: 980px; }
+.trio div { flex: 1 1 220px; max-width: 280px; display: flex; flex-direction: column; gap: 4px; }
+.trio b { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.trio span { font-size: 15.5px; line-height: 1.5; font-weight: 400; color: var(--muted); }
 .trio i { display: block; width: 36px; height: 3px; border-radius: 3px; margin: 0 auto 6px; }
 .sky.left .trio i { margin-left: 0; }
 .i1 { background: var(--mint); } .i2 { background: var(--gold); } .i3 { background: var(--peach); }
-.num { font-size: 15px; font-weight: 800; color: var(--gold); letter-spacing: 0.1em; }
+.num { font-size: 13px; font-weight: 600; color: var(--gold); letter-spacing: 0.12em; }
 
 /* Floating chat, no card */
 .chat { display: flex; flex-direction: column; gap: 12px; width: min(460px, 100%); margin-top: 18px; text-shadow: none; }
@@ -63,7 +64,7 @@ h2 { margin: 0; font-size: clamp(34px, 5.2vw, 66px); line-height: 1.04; font-wei
 /* Plan: ring and bars floating in the sky */
 .plan { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 28px 44px; margin-top: 16px; }
 .ring-wrap { display: flex; align-items: center; gap: 16px; text-align: left; }
-.ring-wrap b { display: block; font-size: 30px; font-weight: 800; }
+.ring-wrap b { display: block; font-size: 28px; font-weight: 600; }
 .bars { display: flex; flex-direction: column; gap: 10px; width: min(340px, 100%); text-align: left; font-size: 14px; font-weight: 500; text-shadow: none; }
 .bars div { display: grid; grid-template-columns: 64px 1fr 64px; gap: 10px; align-items: center; }
 .bars em { position: relative; height: 8px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 14%, transparent); }
